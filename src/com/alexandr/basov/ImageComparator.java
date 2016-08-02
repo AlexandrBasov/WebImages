@@ -8,6 +8,7 @@ import java.util.Collection;
 
 public class ImageComparator {
 
+    //Возвращаем изображение в котором выделены отличия между двумя изображениями
     public BufferedImage getDifferencesImage(BufferedImage image1, BufferedImage image2) throws IOException {
         if ((image1.getWidth() != image2.getWidth()) || image1.getHeight() != image2.getHeight()) {
             throw new RuntimeException("Images have different dimensions!");
@@ -17,6 +18,7 @@ public class ImageComparator {
         return highlightDifferences(differentImage, groupPixels(getDifferentPixels(image1, image2)));
     }
 
+    //Рисуем крассные квадраты вокруг каждой из групп пикселей
     private BufferedImage highlightDifferences(BufferedImage differentImage, Collection<Collection<Integer[]>> groupsOfPixels) throws IOException {
         BufferedImage bufferedImage = new BufferedImage(differentImage.getColorModel(), differentImage.getRaster(), differentImage.isAlphaPremultiplied(), null);
         Graphics2D graphics2D = (Graphics2D) bufferedImage.getGraphics();
@@ -47,6 +49,7 @@ public class ImageComparator {
         return bufferedImage;
     }
 
+    //Групируем пиксели. Точки, которые лежат левее отметки 250 по ширине, попадают в группу 2
     private Collection<Collection<Integer[]>> groupPixels(Collection<Integer[]> differentPixels) {
 
         Collection<Collection<Integer[]>> groups = new ArrayList<>();
@@ -63,7 +66,7 @@ public class ImageComparator {
         groups.add(groupTwo);
         return groups;
     }
-
+    //Выборка всех пикселей которые у картинок разные
     private Collection<Integer[]> getDifferentPixels(BufferedImage image1, BufferedImage image2) {
         Collection<Integer[]> differentPixels = new ArrayList<>();
         for(int i=0; i<image2.getWidth(); i++){
@@ -76,6 +79,7 @@ public class ImageComparator {
         return differentPixels;
     }
 
+    //Сравнение двух пикселей
     private boolean isDifferentPixelse(int pixelOne, int pixelTwo) {
 
         return pixelOne != pixelTwo;
