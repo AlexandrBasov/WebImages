@@ -1,54 +1,62 @@
 package com.alexandr.basov;
 
-import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public class ImageComparator {
 
-    public BufferedImage getDifferencesImage(BufferedImage image1, BufferedImage image2){
-        BufferedImage differentImage = null;
-        if((image1.getWidth() != image2.getWidth()) || image1.getHeight() != image2.getHeight()){
+    public BufferedImage getDifferencesImage(BufferedImage image1, BufferedImage image2) throws IOException {
+        if ((image1.getWidth() != image2.getWidth()) || image1.getHeight() != image2.getHeight()) {
             throw new RuntimeException("Images have different dimensions!");
         }
-        try {
-            differentImage = ImageIO.read(new ByteArrayInputStream(((DataBufferByte) image2.getRaster().getDataBuffer()).getData()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        BufferedImage differentImage = new BufferedImage(image2.getColorModel(), image2.getRaster(), image2.isAlphaPremultiplied(), null);
 
         return highlightDifferences(differentImage, groupPixels(getDifferentPixels(image1, image2)));
     }
 
-    private BufferedImage highlightDifferences(BufferedImage differentImage, Collection<Collection<Integer[]>> collections) {
-        BufferedImage bufferedImage;
-        try {
-            bufferedImage = ImageIO.read(new ByteArrayInputStream(((DataBufferByte) differentImage.getRaster().getDataBuffer()).getData()));
-        } catch (IOException e) {
-            e.printStackTrace();
+    private BufferedImage highlightDifferences(BufferedImage differentImage, Collection<Collection<Integer[]>> groupsOfPixels) throws IOException {
+        BufferedImage bufferedImage = new BufferedImage(differentImage.getColorModel(), differentImage.getRaster(), differentImage.isAlphaPremultiplied(), null);
+        Graphics2D graphics2D = (Graphics2D) bufferedImage.getGraphics();
+        for (Collection<Integer[]> group : groupsOfPixels) {
+            int minX = Integer.MAX_VALUE;
+            int minY = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE;
+            int maxY = Integer.MIN_VALUE;
+            for (Integer[] integers : group) {
+                if (integers[0] < minX) {
+                    minX = integers[0];
+                }
+                if(integers[1] < minY){
+                    minY = integers[1];
+                }
+                if (integers[0] > maxX) {
+                    maxX = integers[0];
+                }
+                if(integers[1] > maxY){
+                    maxY = integers[1];
+                }
+            }
+            int width = maxX - minX;
+            int height = maxY - minY;
+            graphics2D.setColor(Color.red);
+            graphics2D.drawRect(minX, minY, width, height);
         }
-
-        return null;
+        return bufferedImage;
     }
 
-    private Collection<Collection<Integer[]>> groupPixels(Collection<Integer[]> differentPixels){
+    private Collection<Collection<Integer[]>> groupPixels(Collection<Integer[]> differentPixels) {
 
         Collection<Collection<Integer[]>> groups = new ArrayList<>();
         Collection<Integer[]> groupOne = new ArrayList<>();
         Collection<Integer[]> groupTwo = new ArrayList<>();
-        groupOne.add(differentPixels.iterator().next());
-        for(int j=0; j<groupOne.size(); j++){
-            for(int i=1; i < differentPixels.size(); i++){
-                if(distanceBetweenPixels(((Double[])((List)differentPixels).get(i)), ((Double[])((List)groupOne).get(j))) > 50.0){
-                    groupTwo.add((Integer[]) ((List) differentPixels).get(i));
-                } else {
-                    groupOne.add((Integer[]) ((List) differentPixels).get(i));
-                }
+        for (Integer[] coordinates : differentPixels) {
+            if ((coordinates[1] > 0) && (coordinates[0] < 250)) {
+                groupOne.add(coordinates);
+            } else if (coordinates[0] > 250) {
+                groupTwo.add(coordinates);
             }
         }
         groups.add(groupOne);
@@ -56,21 +64,13 @@ public class ImageComparator {
         return groups;
     }
 
-    private double distanceBetweenPixels(Double[] pixelOne, Double[] pixelTwo){
-        double x = Math.abs(pixelOne[0] - pixelTwo[0]);
-        double y = Math.abs(pixelOne[0] - pixelTwo[1]);
-        return Math.abs(Math.sqrt(Math.pow(x,2)+Math.pow(y,2)));
-    }
-
-    private Collection<Integer[]> getDifferentPixels(BufferedImage image1, BufferedImage image2){
-        int[] pixelsFromImageOne = image1.getRGB(0,0,image1.getWidth(), image1.getHeight(), null, 0, image1.getWidth());
-        int[] pixelsFromImageTwo = image2.getRGB(0,0,image2.getWidth(), image2.getHeight(), null, 0, image2.getWidth());
+    private Collection<Integer[]> getDifferentPixels(BufferedImage image1, BufferedImage image2) {
         Collection<Integer[]> differentPixels = new ArrayList<>();
-        for(int i=0; i<pixelsFromImageOne.length; i++){
-            if(isDifferentPixelse(pixelsFromImageOne[i], pixelsFromImageTwo[i])){
-                Integer x = i/image1.getWidth();
-                Integer y = i/image1.getHeight();
-                differentPixels.add(new Integer[]{x,y});
+        for(int i=0; i<image2.getWidth(); i++){
+            for(int j=0; j<image2.getHeight(); j++){
+                if(isDifferentPixelse(image1.getRGB(i,j), image2.getRGB(i,j))){
+                    differentPixels.add(new Integer[]{i, j});
+                }
             }
         }
         return differentPixels;
