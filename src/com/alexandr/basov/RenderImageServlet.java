@@ -12,11 +12,24 @@ import java.io.IOException;
 @WebServlet("/renderImageServlet")
 public class RenderImageServlet extends HttpServlet {
 
+    private ImageComparator imageComparator;
+
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        String imageName = req.getParameter("image");
-        BufferedImage image = ImageIO.read(getServletContext().getResource("/"+imageName));
-        ImageIO.write(image, "PNG", resp.getOutputStream());
+        imageComparator = new ImageComparator();
+
+        BufferedImage image1 = ImageIO.read(getServletContext().getResource("/image1.png"));
+        BufferedImage image2 = ImageIO.read(getServletContext().getResource("/image2.png"));
+        BufferedImage differences = imageComparator.getDifferencesImage(image1, image2);
+        ImageIO.write(differences, "PNG", resp.getOutputStream());
+    }
+
+    public ImageComparator getImageComparator() {
+        return imageComparator;
+    }
+
+    public void setImageComparator(ImageComparator imageComparator) {
+        this.imageComparator = imageComparator;
     }
 }

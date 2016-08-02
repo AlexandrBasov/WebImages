@@ -11,7 +11,7 @@
     <title>ImageComparator</title>
 </head>
 <body>
-<image src="renderImageServlet?image=image1.png">
+<image style="width: 50%" src="renderImageServlet">
 
 </image>
 </body>
