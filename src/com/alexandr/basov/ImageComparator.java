@@ -31,13 +31,13 @@ public class ImageComparator {
                 if (integers[0] < minX) {
                     minX = integers[0];
                 }
-                if(integers[1] < minY){
+                if (integers[1] < minY) {
                     minY = integers[1];
                 }
                 if (integers[0] > maxX) {
                     maxX = integers[0];
                 }
-                if(integers[1] > maxY){
+                if (integers[1] > maxY) {
                     maxY = integers[1];
                 }
             }
@@ -66,12 +66,13 @@ public class ImageComparator {
         groups.add(groupTwo);
         return groups;
     }
+
     //Выборка всех пикселей которые у картинок разные
     private Collection<Integer[]> getDifferentPixels(BufferedImage image1, BufferedImage image2) {
         Collection<Integer[]> differentPixels = new ArrayList<>();
-        for(int i=0; i<image2.getWidth(); i++){
-            for(int j=0; j<image2.getHeight(); j++){
-                if(isDifferentPixelse(image1.getRGB(i,j), image2.getRGB(i,j))){
+        for (int i = 0; i < image2.getWidth(); i++) {
+            for (int j = 0; j < image2.getHeight(); j++) {
+                if (isDifferentPixelse(image1.getRGB(i, j), image2.getRGB(i, j))) {
                     differentPixels.add(new Integer[]{i, j});
                 }
             }
@@ -82,6 +83,15 @@ public class ImageComparator {
     //Сравнение двух пикселей
     private boolean isDifferentPixelse(int pixelOne, int pixelTwo) {
 
-        return pixelOne != pixelTwo;
+        int r1 = (pixelOne >> 16) & 0xff;
+        int g1 = (pixelOne >>  8) & 0xff;
+        int b1 = (pixelOne      ) & 0xff;
+        int r2 = (pixelTwo >> 16) & 0xff;
+        int g2 = (pixelTwo >>  8) & 0xff;
+        int b2 = (pixelTwo      ) & 0xff;
+
+        int difference = (Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2))/3 * 100;
+
+        return difference > 10;
     }
 }
