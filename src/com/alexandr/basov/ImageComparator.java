@@ -1,6 +1,10 @@
 package com.alexandr.basov;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -8,8 +12,25 @@ import java.util.List;
 public class ImageComparator {
 
     public BufferedImage getDifferencesImage(BufferedImage image1, BufferedImage image2){
+        BufferedImage differentImage = null;
         if((image1.getWidth() != image2.getWidth()) || image1.getHeight() != image2.getHeight()){
             throw new RuntimeException("Images have different dimensions!");
+        }
+        try {
+            differentImage = ImageIO.read(new ByteArrayInputStream(((DataBufferByte) image2.getRaster().getDataBuffer()).getData()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return highlightDifferences(differentImage, groupPixels(getDifferentPixels(image1, image2)));
+    }
+
+    private BufferedImage highlightDifferences(BufferedImage differentImage, Collection<Collection<Integer[]>> collections) {
+        BufferedImage bufferedImage;
+        try {
+            bufferedImage = ImageIO.read(new ByteArrayInputStream(((DataBufferByte) differentImage.getRaster().getDataBuffer()).getData()));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         return null;
@@ -41,15 +62,15 @@ public class ImageComparator {
         return Math.abs(Math.sqrt(Math.pow(x,2)+Math.pow(y,2)));
     }
 
-    private Collection<int[]> getDifferentPixels(BufferedImage image1, BufferedImage image2){
+    private Collection<Integer[]> getDifferentPixels(BufferedImage image1, BufferedImage image2){
         int[] pixelsFromImageOne = image1.getRGB(0,0,image1.getWidth(), image1.getHeight(), null, 0, image1.getWidth());
         int[] pixelsFromImageTwo = image2.getRGB(0,0,image2.getWidth(), image2.getHeight(), null, 0, image2.getWidth());
-        Collection<int[]> differentPixels = new ArrayList<>();
+        Collection<Integer[]> differentPixels = new ArrayList<>();
         for(int i=0; i<pixelsFromImageOne.length; i++){
             if(isDifferentPixelse(pixelsFromImageOne[i], pixelsFromImageTwo[i])){
-                int x = i/image1.getWidth();
-                int y = i/image1.getHeight();
-                differentPixels.add(new int[]{x,y});
+                Integer x = i/image1.getWidth();
+                Integer y = i/image1.getHeight();
+                differentPixels.add(new Integer[]{x,y});
             }
         }
         return differentPixels;
